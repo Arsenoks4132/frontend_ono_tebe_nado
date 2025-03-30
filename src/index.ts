@@ -5,6 +5,9 @@ import {API_URL, CDN_URL} from "./utils/constants";
 import {EventEmitter} from "./components/base/events";
 import {cloneTemplate, createElement, ensureElement} from "./utils/utils";
 import AppState from './components/model/AppState';
+import Page from './components/view/Page';
+import { Modal } from './components/common/Modal';
+
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -25,12 +28,14 @@ const tabsTemplate = ensureElement<HTMLTemplateElement>('#tabs');
 const soldTemplate = ensureElement<HTMLTemplateElement>('#sold');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
+const modalTemplate = ensureElement<HTMLElement>('#modal-container');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
 
 // Глобальные контейнеры
-
+const page = new Page(document.body, events);
+const modal = new Modal(modalTemplate, events);
 
 // Переиспользуемые части интерфейса
 
