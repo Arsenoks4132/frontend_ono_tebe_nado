@@ -12,6 +12,8 @@ import Tabs from './components/common/Tabs';
 import Order from './components/view/Order';
 import LotItem, { CatalogChangeEvent } from './components/model/LotItem';
 import { AuctionItem, BidItem, CatalogItem } from './components/view/Card';
+import { IOrderForm } from './types';
+import Plug from './components/view/Plug';
 
 
 const events = new EventEmitter();
@@ -75,6 +77,61 @@ events.on<CatalogChangeEvent>('items:changed', () => {
 
   page.counter = appData.getClosedLots().length;
 });
+
+// Открыть лот
+events.on('card:select', (item: LotItem) => {
+  appData.setPreview(item);
+});
+
+// Открыть форму заказа
+events.on('order:open', () => {
+  modal.render({
+    content: order.render({
+      phone: '',
+      email: '',
+      valid: false,
+      errors: []
+    })
+  });
+});
+
+// Изменилось одно из полей
+events.on(/^order\..*:change/, (data: { field: keyof IOrderForm, value: string }) => {
+  appData.setOrderField(data.field, data.value);
+});
+
+// Изменилось состояние валидации формы
+events.on('formErrors:change', (errors: Partial<IOrderForm>) => {
+  const { email, phone } = errors;
+  order.valid = !email && !phone;
+  order.errors = Object.values({ phone, email }).filter(i => !!i).join('; ');
+});
+
+// Отправлена форма заказа
+events.on('order:submit', () => {
+  api.orderLots(appData.order)
+    .then((result) => {
+      const success = new Plug(cloneTemplate(successTemplate), {
+        onClick: () => {
+          modal.close();
+          appData.clearBasket();
+          events.emit('auction:changed');
+        }
+      });
+
+      modal.render({
+        content: success.render({})
+      });
+    })
+    .catch(err => {
+      console.error(err);
+    });
+});
+
+
+
+
+
 
 // Получаем лоты с сервера
 api.getLotList()
