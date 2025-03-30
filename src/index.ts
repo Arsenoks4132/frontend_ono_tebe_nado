@@ -10,6 +10,8 @@ import { Modal } from './components/common/Modal';
 import Basket from './components/common/Basket';
 import Tabs from './components/common/Tabs';
 import Order from './components/view/Order';
+import LotItem, { CatalogChangeEvent } from './components/model/LotItem';
+import { AuctionItem, BidItem, CatalogItem } from './components/view/Card';
 
 
 const events = new EventEmitter();
@@ -54,6 +56,25 @@ const order = new Order(cloneTemplate(orderTemplate), events);
 // Дальше идет бизнес-логика
 // Поймали событие, сделали что нужно
 
+// Изменились элементы каталога
+events.on<CatalogChangeEvent>('items:changed', () => {
+  page.catalog = appData.catalog.map(item => {
+    const card = new CatalogItem(cloneTemplate(cardCatalogTemplate), {
+      onClick: () => events.emit('card:select', item)
+    });
+    return card.render({
+      title: item.title,
+      image: item.image,
+      description: item.about,
+      status: {
+        status: item.status,
+        label: item.statusLabel
+      },
+    });
+  });
+
+  page.counter = appData.getClosedLots().length;
+});
 
 // Получаем лоты с сервера
 api.getLotList()
