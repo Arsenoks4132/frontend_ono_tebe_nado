@@ -4,6 +4,7 @@ import {AuctionAPI} from "./components/AuctionAPI";
 import {API_URL, CDN_URL} from "./utils/constants";
 import {EventEmitter} from "./components/base/events";
 import {cloneTemplate, createElement, ensureElement} from "./utils/utils";
+import AppState from './components/model/AppState';
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -26,7 +27,7 @@ const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
 // Модель данных приложения
-
+const appData = new AppState({}, events);
 
 // Глобальные контейнеры
 

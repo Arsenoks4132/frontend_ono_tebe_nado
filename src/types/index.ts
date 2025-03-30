@@ -25,6 +25,13 @@ export interface IOrderForm {
     phone: string;
 }
 
+export interface IAppState {
+    catalog: ILot[];
+    preview: string | null;
+    order: IOrder | null;
+    loading: boolean;
+}
+
 export interface IOrder extends IOrderForm {
     items: string[]
 }

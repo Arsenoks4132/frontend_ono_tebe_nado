@@ -53,4 +53,4 @@ export class AuctionAPI extends Api implements IAuctionAPI {
         );
     }
 
-}
+}   
