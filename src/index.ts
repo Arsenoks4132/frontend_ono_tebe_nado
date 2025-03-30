@@ -14,6 +14,7 @@ import LotItem, { CatalogChangeEvent } from './components/model/LotItem';
 import { AuctionItem, BidItem, CatalogItem } from './components/view/Card';
 import { IOrderForm } from './types';
 import Plug from './components/view/Plug';
+import { Auction } from './components/view/Auction';
 
 
 const events = new EventEmitter();
@@ -36,6 +37,7 @@ const soldTemplate = ensureElement<HTMLTemplateElement>('#sold');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const modalTemplate = ensureElement<HTMLElement>('#modal-container');
+const emptyTemplate = ensureElement<HTMLTemplateElement>('#empty');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -128,9 +130,146 @@ events.on('order:submit', () => {
     });
 });
 
+// Открыть активные лоты
+events.on('bids:open', () => {
+  modal.render({
+    content: createElement<HTMLElement>('div', {}, [
+      tabs.render({
+        selected: 'active'
+      }),
+      bids.render()
+    ])
+  });
+});
 
+// Открыть закрытые лоты
+events.on('basket:open', () => {
+  if (appData.getClosedLots().length === 0) {
+    const success = new Plug(cloneTemplate(emptyTemplate), {
+      onClick: () => {
+        modal.close();
+      }
+    });
 
+    modal.render({
+      content: createElement<HTMLElement>('div', {}, [
+        tabs.render({
+          selected: 'closed'
+        }),
+        success.render({})
+      ])
+    });
 
+    return;
+  }
+
+  modal.render({
+    content: createElement<HTMLElement>('div', {}, [
+      tabs.render({
+        selected: 'closed'
+      }),
+      basket.render()
+    ])
+  });
+});
+
+// Изменения в лоте, пересчёт стоимости
+events.on('auction:changed', () => {
+  page.counter = appData.getClosedLots().length;
+  bids.items = appData.getActiveLots().map(item => {
+    const card = new BidItem(cloneTemplate(cardBasketTemplate), {
+      onClick: () => events.emit('preview:changed', item)
+    });
+    return card.render({
+      title: item.title,
+      image: item.image,
+      status: {
+        amount: item.price,
+        status: item.isMyBid
+      }
+    });
+  });
+  let total = 0;
+  basket.items = appData.getClosedLots().map(item => {
+    const card = new BidItem(cloneTemplate(soldTemplate), {
+      onClick: (event) => {
+        if (
+          event.target instanceof HTMLLabelElement ||
+          event.target instanceof HTMLInputElement
+        ) {
+          const checkbox = event.target as HTMLInputElement;
+          appData.toggleOrderedLot(item.id, checkbox.checked);
+          basket.total = appData.getTotal();
+          basket.selected = appData.order.items;
+        } else {
+          events.emit('preview:changed', item);
+        }
+      }
+    });
+    return card.render({
+      title: item.title,
+      image: item.image,
+      status: {
+        amount: item.price,
+        status: item.isMyBid
+      }
+    });
+  });
+  basket.selected = appData.order.items;
+  basket.total = total;
+});
+
+// Изменен открытый выбранный лот
+events.on('preview:changed', (item: LotItem) => {
+  const showItem = (item: LotItem) => {
+    const card = new AuctionItem(cloneTemplate(cardPreviewTemplate));
+    const auction = new Auction(cloneTemplate(auctionTemplate), {
+      onSubmit: (price) => {
+        item.placeBid(price);
+        auction.render({
+          status: item.status,
+          time: item.timeStatus,
+          label: item.auctionStatus,
+          nextBid: item.nextBid,
+          history: item.history
+        });
+      }
+    });
+
+    modal.render({
+      content: card.render({
+        title: item.title,
+        image: item.image,
+        description: item.description.split("\n"),
+        status: auction.render({
+          status: item.status,
+          time: item.timeStatus,
+          label: item.auctionStatus,
+          nextBid: item.nextBid,
+          history: item.history
+        })
+      })
+    });
+
+    if (item.status === 'active') {
+      auction.focus();
+    }
+  };
+
+  if (item) {
+    api.getLotItem(item.id)
+      .then((result) => {
+        item.description = result.description;
+        item.history = result.history;
+        showItem(item);
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+  } else {
+    modal.close();
+  }
+});
 
 
 // Получаем лоты с сервера
