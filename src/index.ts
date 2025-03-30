@@ -7,6 +7,9 @@ import {cloneTemplate, createElement, ensureElement} from "./utils/utils";
 import AppState from './components/model/AppState';
 import Page from './components/view/Page';
 import { Modal } from './components/common/Modal';
+import Basket from './components/common/Basket';
+import Tabs from './components/common/Tabs';
+import Order from './components/view/Order';
 
 
 const events = new EventEmitter();
@@ -38,7 +41,15 @@ const page = new Page(document.body, events);
 const modal = new Modal(modalTemplate, events);
 
 // Переиспользуемые части интерфейса
-
+const bids = new Basket(cloneTemplate(bidsTemplate), events);
+const basket = new Basket(cloneTemplate(basketTemplate), events);
+const tabs = new Tabs(cloneTemplate(tabsTemplate), {
+  onClick: (name) => {
+    if (name === 'closed') events.emit('basket:open');
+    else events.emit('bids:open');
+  }
+});
+const order = new Order(cloneTemplate(orderTemplate), events);
 
 // Дальше идет бизнес-логика
 // Поймали событие, сделали что нужно
