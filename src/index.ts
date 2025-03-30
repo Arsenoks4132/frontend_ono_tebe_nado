@@ -1,9 +1,9 @@
 import './scss/styles.scss';
 
-import {AuctionAPI} from "./components/AuctionAPI";
-import {API_URL, CDN_URL} from "./utils/constants";
-import {EventEmitter} from "./components/base/events";
-import {cloneTemplate, createElement, ensureElement} from "./utils/utils";
+import { AuctionAPI } from "./components/AuctionAPI";
+import { API_URL, CDN_URL } from "./utils/constants";
+import { EventEmitter } from "./components/base/events";
+import { cloneTemplate, createElement, ensureElement } from "./utils/utils";
 import AppState from './components/model/AppState';
 import Page from './components/view/Page';
 import { Modal } from './components/common/Modal';
@@ -22,7 +22,7 @@ const api = new AuctionAPI(CDN_URL, API_URL);
 
 // Чтобы мониторить все события, для отладки
 events.onAll(({ eventName, data }) => {
-    console.log(eventName, data);
+  console.log(eventName, data);
 })
 
 // Все шаблоны
@@ -271,15 +271,22 @@ events.on('preview:changed', (item: LotItem) => {
   }
 });
 
+// Блокируем прокрутку страницы при открытии модалки
+events.on('modal:open', () => {
+  page.locked = true;
+});
+
+// Разблокируем прокрутку страницы при закрытии модалки
+events.on('modal:close', () => {
+  page.locked = false;
+});
 
 // Получаем лоты с сервера
 api.getLotList()
-    .then(result => {
-        // вместо лога поместите данные в модель
-        console.log(result);
-    })
-    .catch(err => {
-        console.error(err);
-    });
-
-
+  .then(result => {
+    // вместо лога поместите данные в модель
+    console.log(result);
+  })
+  .catch(err => {
+    console.error(err);
+  });
