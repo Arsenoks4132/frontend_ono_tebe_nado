@@ -3,19 +3,18 @@ import './scss/styles.scss';
 import { AuctionAPI } from "./components/AuctionAPI";
 import { API_URL, CDN_URL } from "./utils/constants";
 import { EventEmitter } from "./components/base/events";
-import { cloneTemplate, createElement, ensureElement } from "./utils/utils";
+import { cloneTemplate, createElement, ensureElement } from './utils/utils';
 import AppState from './components/model/AppState';
-import Page from './components/view/Page';
 import { Modal } from './components/common/Modal';
+import Page from './components/view/Page';
 import Basket from './components/common/Basket';
 import Tabs from './components/common/Tabs';
 import Order from './components/view/Order';
 import LotItem, { CatalogChangeEvent } from './components/model/LotItem';
 import { AuctionItem, BidItem, CatalogItem } from './components/view/Card';
+import { Auction } from './components/view/Auction';
 import { IOrderForm } from './types';
 import Plug from './components/view/Plug';
-import { Auction } from './components/view/Auction';
-
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -36,8 +35,8 @@ const tabsTemplate = ensureElement<HTMLTemplateElement>('#tabs');
 const soldTemplate = ensureElement<HTMLTemplateElement>('#sold');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
-const modalTemplate = ensureElement<HTMLElement>('#modal-container');
 const emptyTemplate = ensureElement<HTMLTemplateElement>('#empty');
+const modalTemplate = ensureElement<HTMLElement>('#modal-container');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -130,6 +129,8 @@ events.on('order:submit', () => {
     });
 });
 
+
+
 // Открыть активные лоты
 events.on('bids:open', () => {
   modal.render({
@@ -217,7 +218,9 @@ events.on('auction:changed', () => {
   });
   basket.selected = appData.order.items;
   basket.total = total;
-});
+})
+
+
 
 // Изменен открытый выбранный лот
 events.on('preview:changed', (item: LotItem) => {
@@ -271,6 +274,7 @@ events.on('preview:changed', (item: LotItem) => {
   }
 });
 
+
 // Блокируем прокрутку страницы при открытии модалки
 events.on('modal:open', () => {
   page.locked = true;
@@ -281,12 +285,16 @@ events.on('modal:close', () => {
   page.locked = false;
 });
 
+
 // Получаем лоты с сервера
 api.getLotList()
   .then(result => {
-    // вместо лога поместите данные в модель
-    console.log(result);
+    // // вместо лога поместите данные в модель
+    // console.log(result);
+    appData.setCatalog(result);
   })
   .catch(err => {
     console.error(err);
   });
+
+

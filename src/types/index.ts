@@ -20,16 +20,21 @@ export type ILot = ILotItem & IAuction;
 
 export type LotUpdate = Pick<ILot, 'id' | 'datetime' | 'status' | 'price' | 'history'>;
 
-export interface IOrderForm {
-    email: string;
-    phone: string;
-}
+export type IBasketItem = Pick<ILot, 'id' | 'title' | 'price'> & {
+    isMyBid: boolean
+};
 
 export interface IAppState {
     catalog: ILot[];
+    basket: string[];
     preview: string | null;
     order: IOrder | null;
     loading: boolean;
+}
+
+export interface IOrderForm {
+    email: string;
+    phone: string;
 }
 
 export interface IOrder extends IOrderForm {
