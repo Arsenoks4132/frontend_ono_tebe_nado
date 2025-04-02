@@ -2,6 +2,7 @@ import _ from "lodash";
 import { IOrder, FormErrors, ILot, IOrderForm, IAppState } from "../../types";
 import { Model } from "../base/Model";
 import LotItem from "./LotItem";
+import { phone } from "phone";
 
 
 export default class AppState extends Model<IAppState> {
@@ -68,7 +69,7 @@ export default class AppState extends Model<IAppState> {
     if (!this.order.email) {
       errors.email = 'Необходимо указать email';
     }
-    if (!this.order.phone) {
+    if (!phone(this.order.phone, { country: "RU" }).isValid) {
       errors.phone = 'Необходимо указать телефон';
     }
     this.formErrors = errors;
